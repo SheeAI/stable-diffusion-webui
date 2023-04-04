@@ -181,6 +181,7 @@ then
 else
     printf "\n%s\n" "${delimiter}"
     printf "Launching launch.py..."
-    printf "\n%s\n" "${delimiter}"      
-    exec "${python_cmd}" "${LAUNCH_SCRIPT}" "$@"
+    printf "\n%s\n" "${delimiter}"
+    #printf "${python_cmd} ${LAUNCH_SCRIPT} $@"
+    exec "${python_cmd}" "-u" "${LAUNCH_SCRIPT}" "$@"
 fi
