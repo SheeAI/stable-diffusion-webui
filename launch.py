@@ -10,7 +10,7 @@ import json
 from modules import cmd_args
 from modules.paths_internal import script_path, extensions_dir
 
-commandline_args = os.environ.get('COMMANDLINE_ARGS', "--xformers --disable-safe-unpickle --api --listen")
+commandline_args = os.environ.get('COMMANDLINE_ARGS', "--force-enable-xformers --xformers --disable-safe-unpickle --api --listen")
 sys.argv += shlex.split(commandline_args)
 
 args, _ = cmd_args.parser.parse_known_args()
