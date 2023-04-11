@@ -460,22 +460,20 @@ def create_infotext(p, all_prompts, all_seeds, all_subseeds, comments=None, iter
     clip_skip = getattr(p, 'clip_skip', opts.CLIP_stop_at_last_layers)
 
     generation_params = {
-        "steps": p.steps,
-        "sampler_name": p.sampler_name,
-        "cfg_scale": p.cfg_scale,
+        "Steps": p.steps,
+        "Sampler": p.sampler_name,
+        "CFG scale": p.cfg_scale,
         "Image CFG scale": getattr(p, 'image_cfg_scale', None),
-        "seed": all_seeds[index],
-        "restore_faces": (opts.face_restoration_model if p.restore_faces else None),
+        "Seed": all_seeds[index],
+        "Face restoration": (opts.face_restoration_model if p.restore_faces else None),
         "Size": f"{p.width}x{p.height}",
-        "width": p.width,
-        "height": p.height
         "Model hash": getattr(p, 'sd_model_hash', None if not opts.add_model_hash_to_info or not shared.sd_model.sd_model_hash else shared.sd_model.sd_model_hash),
-        "model": (None if not opts.add_model_name_to_info or not shared.sd_model.sd_checkpoint_info.model_name else shared.sd_model.sd_checkpoint_info.model_name.replace(',', '').replace(':', '')),
+        "Model": (None if not opts.add_model_name_to_info or not shared.sd_model.sd_checkpoint_info.model_name else shared.sd_model.sd_checkpoint_info.model_name.replace(',', '').replace(':', '')),
         "Variation seed": (None if p.subseed_strength == 0 else all_subseeds[index]),
         "Variation seed strength": (None if p.subseed_strength == 0 else p.subseed_strength),
         "Seed resize from": (None if p.seed_resize_from_w == 0 or p.seed_resize_from_h == 0 else f"{p.seed_resize_from_w}x{p.seed_resize_from_h}"),
-        "denoising_strength": getattr(p, 'denoising_strength', None),
-        "Conditional masxxxxxxxxxxxxxxxx ck weight": getattr(p, "inpainting_mask_weight", shared.opts.inpainting_mask_weight) if p.is_using_inpainting_conditioning else None,
+        "Denoising strength": getattr(p, 'denoising_strength', None),
+        "Conditional mask weight": getattr(p, "inpainting_mask_weight", shared.opts.inpainting_mask_weight) if p.is_using_inpainting_conditioning else None,
         "Clip skip": None if clip_skip <= 1 else clip_skip,
         "ENSD": None if opts.eta_noise_seed_delta == 0 else opts.eta_noise_seed_delta,
     }
@@ -810,7 +808,7 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
                 self.applied_old_hires_behavior_to = (self.width, self.height)
 
             if self.hr_resize_x == 0 and self.hr_resize_y == 0:
-                self.extra_generation_params["hr_scale"] = self.hr_scale
+                self.extra_generation_params["Hires upscale"] = self.hr_scale
                 self.hr_upscale_to_x = int(self.width * self.hr_scale)
                 self.hr_upscale_to_y = int(self.height * self.hr_scale)
             else:
@@ -842,7 +840,7 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
             if self.hr_upscale_to_x == self.width and self.hr_upscale_to_y == self.height:
                 self.enable_hr = False
                 self.denoising_strength = None
-                self.extra_generation_params.pop("hr_scale", None)
+                self.extra_generation_params.pop("Hires upscale", None)
                 self.extra_generation_params.pop("Hires resize", None)
                 return
 
@@ -855,10 +853,10 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
                 state.processing_has_refined_job_count = True
 
             if self.hr_second_pass_steps:
-                self.extra_generation_params["hr_second_pass_steps"] = self.hr_second_pass_steps
+                self.extra_generation_params["Hires steps"] = self.hr_second_pass_steps
 
             if self.hr_upscaler is not None:
-                self.extra_generation_params["hr_upscaler"] = self.hr_upscaler
+                self.extra_generation_params["Hires upscaler"] = self.hr_upscaler
 
     def sample(self, conditioning, unconditional_conditioning, seeds, subseeds, subseed_strength, prompts):
         self.sampler = sd_samplers.create_sampler(self.sampler_name, self.sd_model)
