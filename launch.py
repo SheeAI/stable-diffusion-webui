@@ -232,9 +232,6 @@ def prepare_environment():
     gfpgan_package = os.environ.get('GFPGAN_PACKAGE', "git+https://github.com/TencentARC/GFPGAN.git@8d2447a2d918f8eba5a4a01463fd48e45126a379")
     clip_package = os.environ.get('CLIP_PACKAGE', "git+https://github.com/openai/CLIP.git@d50d76daa670286dd6cacf3bcd80b5e4823fc8e1")
     openclip_package = os.environ.get('OPENCLIP_PACKAGE', "git+https://github.com/mlfoundations/open_clip.git@bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b")
-    
-    diffusers_package = os.environ.get('DIFFUSERS_PACKAGE', "git+https://github.com/huggingface/diffusers.git")
-    transformers_package = os.environ.get('TRANSFORMERS_PACKAGE', "git+https://github.com/huggingface/transformers.git")
 
     stable_diffusion_repo = os.environ.get('STABLE_DIFFUSION_REPO', "https://github.com/Stability-AI/stablediffusion.git")
     taming_transformers_repo = os.environ.get('TAMING_TRANSFORMERS_REPO', "https://github.com/CompVis/taming-transformers.git")
@@ -264,12 +261,6 @@ def prepare_environment():
 
     if not is_installed("gfpgan"):
         run_pip(f"install {gfpgan_package}", "gfpgan")
-
-    if not is_installed("diffusers"):
-        run_pip(f"install {diffusers_package}", "diffusers")
-
-    if not is_installed("transformers"):
-        run_pip(f"install {transformers_package}", "transformers")
 
     if not is_installed("clip"):
         run_pip(f"install {clip_package}", "clip")

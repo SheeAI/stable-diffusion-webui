@@ -3,7 +3,6 @@ import math
 import os
 import sys
 import warnings
-import traceback
 
 import torch
 import numpy as np
@@ -30,16 +29,6 @@ from ldm.models.diffusion.ddpm import LatentDepth2ImageDiffusion
 
 from einops import repeat, rearrange
 from blendmodes.blend import blendLayers, BlendType
-
-#Magic Change part
-from diffusers.pipelines.stable_diffusion.safety_checker import StableDiffusionSafetyChecker
-from transformers import AutoFeatureExtractor
-
-# load safety model
-safety_model_id = "CompVis/stable-diffusion-safety-checker"
-safety_feature_extractor = AutoFeatureExtractor.from_pretrained(safety_model_id)
-safety_checker = StableDiffusionSafetyChecker.from_pretrained(safety_model_id)
-#Magic Change part
 
 # some of those options should not be changed at all because they would break the model, so I removed them from options.
 opt_C = 4
@@ -283,7 +272,7 @@ class StableDiffusionProcessing:
 
 
 class Processed:
-    def __init__(self, p: StableDiffusionProcessing, images_list, seed=-1, info="", subseed=None, all_prompts=None, all_negative_prompts=None, all_seeds=None, all_subseeds=None, index_of_first_image=0, infotexts=None, comments="", has_nsfw_concept=False):
+    def __init__(self, p: StableDiffusionProcessing, images_list, seed=-1, info="", subseed=None, all_prompts=None, all_negative_prompts=None, all_seeds=None, all_subseeds=None, index_of_first_image=0, infotexts=None, comments=""):
         self.images = images_list
         self.prompt = p.prompt
         self.negative_prompt = p.negative_prompt
@@ -310,7 +299,6 @@ class Processed:
         self.styles = p.styles
         self.job_timestamp = state.job_timestamp
         self.clip_skip = opts.CLIP_stop_at_last_layers
-        self.has_nsfw_concept = has_nsfw_concept
 
         self.eta = p.eta
         self.ddim_discretize = p.ddim_discretize
@@ -577,7 +565,6 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
 
     infotexts = []
     output_images = []
-    has_nsfw_concept = False
 
     cached_uc = [None, None]
     cached_c = [None, None]
@@ -672,18 +659,6 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
             x_samples_ddim = torch.stack(x_samples_ddim).float()
             x_samples_ddim = torch.clamp((x_samples_ddim + 1.0) / 2.0, min=0.0, max=1.0)
 
-            #Magic Change part
-            try:
-                x_samples_ddim_check = np.copy(x_samples_ddim.cpu().permute(0, 2, 3, 1).numpy())
-                has_nsfw_concept = check_safety(x_samples_ddim_check)
-            except Exception as e:
-                # 获取并打印异常信息
-                # 打印异常信息和追溯信息
-                print(f"Exception type: {type(e)}")
-                print(f"Exception value: {e}")
-                traceback.print_tb(e.__traceback__)
-            #Magic Change part
-
             del samples_ddim
 
             if shared.cmd_opts.lowvram or shared.cmd_opts.medvram:
@@ -776,34 +751,13 @@ def process_images_inner(p: StableDiffusionProcessing) -> Processed:
 
     devices.torch_gc()
 
-    res = Processed(p, output_images, p.all_seeds[0], infotext(), comments="".join(["\n\n" + x for x in comments]), subseed=p.all_subseeds[0], index_of_first_image=index_of_first_image, infotexts=infotexts, has_nsfw_concept=has_nsfw_concept)
+    res = Processed(p, output_images, p.all_seeds[0], infotext(), comments="".join(["\n\n" + x for x in comments]), subseed=p.all_subseeds[0], index_of_first_image=index_of_first_image, infotexts=infotexts)
 
     if p.scripts is not None:
         p.scripts.postprocess(p, res)
 
     return res
 
-#Magic Change Part
-def check_safety(x_image):
-    safety_checker_input = safety_feature_extractor(numpy_to_pil(x_image), return_tensors="pt")
-    x_checked_image, has_nsfw_concept = safety_checker(images=x_image, clip_input=safety_checker_input.pixel_values)
-    assert x_checked_image.shape[0] == len(has_nsfw_concept)
-    for i in range(len(has_nsfw_concept)):
-        if has_nsfw_concept[i]:
-            return True
-    return False
-    
-def numpy_to_pil(images):
-    """
-    Convert a numpy image or a batch of images to a PIL image.
-    """
-    if images.ndim == 3:
-        images = images[None, ...]
-    images = (images * 255).round().astype("uint8")
-    pil_images = [Image.fromarray(image) for image in images]
-
-    return pil_images
-#Magic Change Part
 
 def old_hires_fix_first_pass_dimensions(width, height):
     """old algorithm for auto-calculating first pass size"""
